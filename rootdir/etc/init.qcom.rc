@@ -362,6 +362,10 @@ on post-fs-data
     mkdir /data/misc/dhcp 0770 dhcp dhcp
     chown dhcp dhcp /data/misc/dhcp
 
+    # Create netmgr log dir
+    mkdir /data/misc/netmgr 0770 radio radio
+    chmod 0770 /data/misc/netmgr
+
     # Create port-bridge log dir
     mkdir /data/misc/port_bridge 0770 radio radio
     chmod 0770 /data/misc/port_bridge
