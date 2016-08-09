@@ -71,6 +71,9 @@ on early-boot
     write /sys/kernel/boot_adsp/boot 1
     write /sys/kernel/boot_slpi/boot 1
 
+on post-fs
+    chmod 0755 /sys/kernel/debug/tracing
+
 on fs
     wait /dev/block/bootdevice
     mount_all fstab.qcom
