@@ -1321,3 +1321,9 @@ on post-fs-data
     write /sys/class/leds/green/brightness 255
     write /sys/class/leds/blue/brightness 255
     write /sys/class/leds/green/blink 1
+
+on property:vold.decrypt=trigger_restart_min_framework
+    start time_daemon
+
+on property:vold.decrypt=trigger_restart_framework
+    restart time_daemon
