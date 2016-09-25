@@ -171,6 +171,7 @@ PRODUCT_PACKAGES += \
 
 # Fingerprint sensor
 PRODUCT_PACKAGES += \
+    OneplusPocketMode \
     fingerprintd
 
 # For android_filesystem_config.h
