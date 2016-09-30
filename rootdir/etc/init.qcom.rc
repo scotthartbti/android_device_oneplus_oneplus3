@@ -1230,6 +1230,7 @@ service qseeproxydaemon /system/vendor/bin/qseeproxydaemon
     class late_start
     user system
     group system
+    writepid /dev/cpuset/system-background/tasks
 
 # Seemp health service
 service seemp_healthd /system/vendor/bin/seemp_healthd
