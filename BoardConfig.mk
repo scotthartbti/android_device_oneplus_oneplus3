@@ -112,6 +112,7 @@ QCOM_BT_USE_SMD_TTY := true
 # Camera
 BOARD_QTI_CAMERA_32BIT_ONLY := true
 USE_DEVICE_SPECIFIC_CAMERA := true
+TARGET_CAMERA_APP := Camera2
 
 # Charger
 BOARD_CHARGER_ENABLE_SUSPEND := true
@@ -216,8 +217,5 @@ WIFI_DRIVER_FW_PATH_STA := "sta"
 WIFI_DRIVER_FW_PATH_P2P := "p2p"
 WPA_SUPPLICANT_VERSION := VER_0_8_X
 
-TARGET_USES_HWC2 := true
-
 # inherit from the proprietary version
 -include vendor/oneplus/oneplus3/BoardConfigVendor.mk
-
