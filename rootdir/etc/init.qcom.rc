@@ -124,6 +124,7 @@ on boot
     chmod 0664 /sys/class/graphics/fb0/hbm
     chown system graphics /sys/class/graphics/fb0/srgb
     chmod 0664 /sys/class/graphics/fb0/srgb
+    write /sys/class/graphics/fb0/srgb 1
 
     # Fingerprint
     chmod 0664 /sys/devices/soc/soc:fpc_fpc1020/irq
