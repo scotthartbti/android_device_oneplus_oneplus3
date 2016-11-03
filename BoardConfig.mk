@@ -118,9 +118,6 @@ TARGET_CAMERA_APP := Camera2
 # Charger
 BOARD_CHARGER_DISABLE_INIT_BLANK := true
 
-# Bootanimation
-TARGET_BOOTANIMATION_MULTITHREAD_DECODE := true
-
 # CM Hardware
 BOARD_HARDWARE_CLASS += $(PLATFORM_PATH)/cmhw
 TARGET_TAP_TO_WAKE_NODE := "/proc/touchpanel/double_tap_enable"
