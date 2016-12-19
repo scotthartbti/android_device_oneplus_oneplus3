@@ -36,7 +36,6 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 struct ipa_nat_cache ipv4_nat_cache;
-pthread_mutex_t nat_mutex    = PTHREAD_MUTEX_INITIALIZER;
 
 /* ------------------------------------------
 		UTILITY FUNCTIONS START
@@ -905,13 +904,7 @@ int ipa_nati_del_ipv4_table(uint32_t tbl_hdl)
 
 	if (!ipv4_nat_cache.ip4_tbl[index].valid) {
 		IPAERR("invalid table handle passed\n");
-		ret = -EINVAL;
-		goto fail;
-	}
-
-	if (pthread_mutex_lock(&nat_mutex) != 0) {
-		ret = -1;
-		goto lock_mutex_fail;
+		return -EINVAL;
 	}
 
 	/* unmap the device memory from user space */
@@ -925,10 +918,7 @@ int ipa_nati_del_ipv4_table(uint32_t tbl_hdl)
 	/* close the file descriptor of nat device */
 	if (close(ipv4_nat_cache.ip4_tbl[index].nat_fd)) {
 		IPAERR("unable to close the file descriptor\n");
-		ret = -EINVAL;
-		if (pthread_mutex_unlock(&nat_mutex) != 0)
-			goto unlock_mutex_fail;
-		goto fail;
+		return -EINVAL;
 	}
 
 	del_cmd.table_index = index;
@@ -938,12 +928,9 @@ int ipa_nati_del_ipv4_table(uint32_t tbl_hdl)
 		perror("ipa_nati_del_ipv4_table(): ioctl error value");
 		IPAERR("unable to post nat del command init Error: %d\n", ret);
 		IPADBG("ipa fd %d\n", ipv4_nat_cache.ipa_fd);
-		ret = -EINVAL;
-		if (pthread_mutex_unlock(&nat_mutex) != 0)
-			goto unlock_mutex_fail;
-		goto fail;
+		return -EINVAL;
 	}
-	IPAERR("posted IPA_IOC_V4_DEL_NAT to kernel successfully\n");
+	IPADBG("posted IPA_IOC_V4_DEL_NAT to kernel successfully\n");
 
 	free(ipv4_nat_cache.ip4_tbl[index].index_expn_table_meta);
 	free(ipv4_nat_cache.ip4_tbl[index].rule_id_array);
@@ -955,22 +942,7 @@ int ipa_nati_del_ipv4_table(uint32_t tbl_hdl)
 	/* Decrease the table count by 1*/
 	ipv4_nat_cache.table_cnt--;
 
-	if (pthread_mutex_unlock(&nat_mutex) != 0) {
-		ret = -1;
-		goto unlock_mutex_fail;
-	}
-
 	return 0;
-
-lock_mutex_fail:
-	IPAERR("unable to lock the nat mutex\n");
-	return ret;
-
-unlock_mutex_fail:
-	IPAERR("unable to unlock the nat mutex\n");
-
-fail:
-	return ret;
 }
 
 int ipa_nati_query_timestamp(uint32_t  tbl_hdl,
@@ -987,11 +959,6 @@ int ipa_nati_query_timestamp(uint32_t  tbl_hdl,
 		return -EINVAL;
 	}
 
-	if (pthread_mutex_lock(&nat_mutex) != 0) {
-		IPAERR("unable to lock the nat mutex\n");
-		return -1;
-	}
-
 	ipa_nati_parse_ipv4_rule_hdl(tbl_index, (uint16_t)rule_hdl,
 															 &expn_tbl, &tbl_entry);
 
@@ -1002,15 +969,8 @@ int ipa_nati_query_timestamp(uint32_t  tbl_hdl,
 			 (struct ipa_nat_rule *)ipv4_nat_cache.ip4_tbl[tbl_index].ipv4_expn_rules_addr;
 	}
 
-	if (tbl_ptr)
-		*time_stamp = Read32BitFieldValue(tbl_ptr[tbl_entry].ts_proto,
-					TIME_STAMP_FIELD);
-
-	if (pthread_mutex_unlock(&nat_mutex) != 0) {
-		IPAERR("unable to unlock the nat mutex\n");
-		return -1;
-	}
-
+	*time_stamp = Read32BitFieldValue(tbl_ptr[tbl_entry].ts_proto,
+																		TIME_STAMP_FIELD);
 	return 0;
 }
 
