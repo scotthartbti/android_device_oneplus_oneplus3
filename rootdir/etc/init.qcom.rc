@@ -325,9 +325,11 @@ on post-fs-data
     mkdir /persist/bms 0700 root system
     restorecon_recursive /persist
     mkdir /data/misc/dts 0770 media audio
+    mkdir /data/misc/seemp 0700 system system
     mkdir /data/usf 0700 system system
     mkdir /data/misc/tloc/ 0700 system drmrpc
     mkdir /data/misc/qvop 0660 system system
+    mkdir /data/misc/qvr 0770 system system
     mkdir /data/misc/audio_pp 0771 media audio
 
     # NFC
@@ -409,6 +411,7 @@ on post-fs-data
     # We chown/chmod /persist again so because mount is run as root + defaults
     chown root system /persist
     chmod 0771 /persist
+    chown system system /persist/WCNSS_qcom_wlan_nv.bin
     chmod 0664 /sys/devices/platform/msm_sdcc.1/polling
     chmod 0664 /sys/devices/platform/msm_sdcc.2/polling
     chmod 0664 /sys/devices/platform/msm_sdcc.3/polling
@@ -502,7 +505,7 @@ service qcamerasvr /system/bin/mm-qcamera-daemon
 service fingerprintd /system/bin/fingerprintd
     class late_start
     user system
-    group input
+    group system
     writepid /dev/cpuset/system-background/tasks
 
 service qfp-daemon /system/bin/qfp-daemon
@@ -515,15 +518,16 @@ service qvop-daemon /system/bin/qvop-daemon
     user system
     group system drmrpc
 
-# start up peripheral manager
-service per_mgr /system/bin/pm-service
-    class late_start
+# Start up peripheral manager
+service per_mgr system/bin/pm-service
+    class core
     user system
     group system
+    ioprio rt 4
     writepid /dev/cpuset/system-background/tasks
 
 service per_proxy /system/bin/pm-proxy
-    class late_start
+    class core
     user system
     group system
     disabled
@@ -540,6 +544,12 @@ service qseecomd /system/bin/qseecomd
    user root
    group root
    writepid /dev/cpuset/system-background/tasks
+
+service qvrd /system/vendor/bin/qvrservice
+    class late_start
+    user system
+    group system camera graphics
+    socket qvrservice stream 0666 system system
 
 service perfd /system/vendor/bin/perfd
    class main
@@ -734,13 +744,10 @@ on property:persist.sys.ssr.enable_ramdumps=0
 
 on property:sys.boot_completed=1
     write /dev/kmsg "Boot completed "
-    # Reset the read_ahead_kb to 256
-    write /sys/block/dm-0/queue/read_ahead_kb 256
-    write /sys/block/sda/queue/read_ahead_kb 256
-    write /sys/block/sde/queue/read_ahead_kb 256
-
-    # CPE fw_name used by sound trigger HAL
-    chown media audio /sys/kernel/wcd_cpe0/fw_name
+    # Reset the read_ahead_kb to 512
+    write /sys/block/dm-0/queue/read_ahead_kb 512
+    write /sys/block/sda/queue/read_ahead_kb 512
+    write /sys/block/sde/queue/read_ahead_kb 512
 
     # WDSP FW boot sysfs node used by STHAL
     chown media audio /sys/kernel/wdsp0/boot
@@ -777,9 +784,13 @@ on property:bluetooth.startbtsnoop=true
 on property:bluetooth.startbtsnoop=false
     stop btsnoop
 
+on property:vold.decrypt=trigger_restart_min_framework
+    start time_daemon
+
 on property:vold.decrypt=trigger_restart_framework
     start config_bt_addr
     start config_bluetooth
+    restart time_daemon
 
 on property:persist.env.fastdorm.enabled=true
     setprop persist.radio.data_no_toggle 1
@@ -813,7 +824,7 @@ service rfs_access /system/bin/rfs_access
     writepid /dev/cpuset/system-background/tasks
 
 service tftp_server /system/bin/tftp_server
-    class main
+    class core
     user root
     writepid /dev/cpuset/system-background/tasks
 
@@ -905,14 +916,6 @@ service qmiproxy /system/bin/qmiproxy
     user radio
     group radio qcom_diag
     disabled
-
-# QMUX must be in multiple groups to support external process connections
-# VENDOR_EDIT, yangrujin@BSP 2015-11-06, modify user from root to radio, to fix qmuxd communicate encounter permission error
-service qmuxd /system/bin/qmuxd
-    class main
-    user radio
-    group radio audio bluetooth gps nfc qcom_diag wakelock
-    writepid /dev/cpuset/system-background/tasks
 
 service netmgrd /system/bin/netmgrd
     class main
@@ -1321,9 +1324,3 @@ on post-fs-data
     write /sys/class/leds/green/brightness 255
     write /sys/class/leds/blue/brightness 255
     write /sys/class/leds/green/blink 1
-
-on property:vold.decrypt=trigger_restart_min_framework
-    start time_daemon
-
-on property:vold.decrypt=trigger_restart_framework
-    restart time_daemon
