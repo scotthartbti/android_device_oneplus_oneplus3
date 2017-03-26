@@ -141,6 +141,9 @@ ro.sys.sdcardfs=true
 # Timeservice
 persist.timed.enable=true
 
+# Doze
+persist.autopowermodes.nogms=true
+
 # Wifi
 wifi.interface=wlan0
 
