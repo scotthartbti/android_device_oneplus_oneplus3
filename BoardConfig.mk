@@ -80,6 +80,9 @@ BOARD_USES_QCOM_HARDWARE := true
 # ANT+
 BOARD_ANT_WIRELESS_DEVICE := "qualcomm-uart"
 
+# Enable real time lockscreen charging current values
+BOARD_GLOBAL_CFLAGS += -DBATTERY_REAL_INFO
+
 # Audio
 #AUDIO_FEATURE_ENABLED_AAC_ADTS_OFFLOAD := true
 AUDIO_FEATURE_ENABLED_ACDB_LICENSE := true
